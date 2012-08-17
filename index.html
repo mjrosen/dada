@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="Dada : Divisive Amplicon Denoising Algorithm" />
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Dada</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/mjrosen/dada">View on GitHub</a>
+
+          <h1 id="project_title">Dada</h1>
+          <h2 id="project_tagline">Divisive Amplicon Denoising Algorithm</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/mjrosen/dada/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/mjrosen/dada/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <p>This is a pipeline for processing amplicon sequence data using the DADA algorithm. </p>
+
+<p>I. UPSTREAM of DADA. </p>
+
+<p>DADA takes in data in a format we call .uniques. This a succinct way to store deep sequence data sets. For example:</p>
+
+<pre><code>435 GGCGGCGATATCCTGC
+384 GGCTGCGATATCCTGC
+286 GGCGGCGATATCATGC
+199 GGCGGCGATAGCCTGC
+...
+</code></pre>
+
+<p>Each line consists of a number of identical copies and a sequence, which are separated by a tab. We provide the following PERL scripts to easily get your data into .uniques format from .fasta.</p>
+
+<p>i. "fasta2seqs.pl" This takes a FASTA file and strips away all header information and newlines and creates a file that we call a '.seqs' file, with one read per line. For example:</p>
+
+<pre><code>GGCGGCGATATCCTGC
+GGCTGCGATATCCTGC
+GGCGGCGATATCCTGC
+GGCGGCGATAGCCTGC
+</code></pre>
+
+<p>fasta2seqs.pl can be called along with a folder of .fasta files or a single .fasta file. For example:</p>
+
+<p>"perl fasta2seqs.pl ~/myfastas" </p>
+
+<p>or </p>
+
+<p>"perl fasta2seqs.pl ./myfasta.fasta"</p>
+
+<p>are both acceptable.</p>
+
+<p>A new file or folder will be created with "_seqs" appended to its name</p>
+
+<p>ii. "lengthTrim.pl" This takes in a folder of .seqs files, trims all sequences down to a particular length, and creates a folder of new .seqs files. Sequences shorter than the given length are removed. It can be called as:</p>
+
+<p>"perl lengthTrim.pl ~/myfastas_seqs 100"</p>
+
+<p>This creates the folder "~/myfastas_seqs100", which will contain .seqs files of 100bp sequences.</p>
+
+<p>iii. "clusterUniques.pl" This takes in a folder of .seqs files (or single .seqs file) and outputs a folder (or file) in the .unique format described above. The folder will have "_uniques" appended to its name.</p>
+
+<p>II. DADA. </p>
+
+<p>Before running DADA it is necessary to compile the MEX (Matlab Executable) C programs "align2dom_homo.c" and "align2dom.c". This is done within MATLAB -- just open MATLAB, go to the directory where the files are located, and type into the command window</p>
+
+<p>"mex align2dom.c" </p>
+
+<p>and </p>
+
+<p>"mex align2dom_homo.c" </p>
+
+<p>This will create executable files with a suffix dependent on your local architecture. These files should then be placed in the same directory as "dada.m" because DADA will call these routines during sequence alignments. It's recommended that you place these files and "dada.m" somewhere on your MATLAB path.</p>
+
+<p>DADA can be called most simply with </p>
+
+<p>"dada('inFolder')" </p>
+
+<p>where 'inFolder' is a folder of .uniques files (explained avove) It can also be called with a number of options via</p>
+
+<p>"dada('inFolder','opt1',op1val,'opt2',op2val...)"</p>
+
+<p>The main options are:
+a. 'omegaA', the abundance p-value significance threshold, set to .01 by default
+b. 'omegaR', the read p-vale significance threshold, set to .01 by default
+c. 'G', the gap penalty (open and extension)
+d. 'GH', a homopolymer gap penalty
+e. 'context', whether or not to use context-dependent error probabilities during clustering, set to "false" by default. Use values "true" and "false" to turn context-dependence on or off
+f. 'tol', a tolerance on the norm of the difference between T matrices on consecutive rounds for DADA to quit (see manuscript)
+g. 'err', gives the user the option of providing an initial set of error probabilities for the first round of clustering. This may save time when clustering the same or similar data sets many times.
+h. 'noUpdate', whether to not update error probabilities, set to "false" by default. Can be useful to set to true in combination with 'err' if you want to see the effect of clustering the data with a particular set of error probabilities.</p>
+
+<p>The output folder is placed in the current folder when DADA is called, and contains the date and time of the call and all options that DADA was called under. </p>
+
+<p>Within this folder will be the results of clustering after each iteration of updated error probabilities, each residering a folder with the number of the iteration. within each iteration folder, there will be a .mat file for each clustered .uniques file as well as a file called 'ERR.mat'. the non 'ERR' .mat files contain the bin struct array, which contains information about each cluster. it also contains a 'reads' and 'reals' array containing the abundances and genotypes inferred as well as D, a pairwise distance matrix between these types. The ERR.mat file contains two matrices, ERR and ERRa, which are the context-dependent and context-independent error probabilities inferred by DADA. In the language of the DADA paper, ERR(L,i,j,R) = T^{L,R}<em>{ij} and ERR(i,j) = T</em>{ij}.</p>
+
+<p>III. DOWNSTREAM of DADA.
+If you wish to work with a single .fasta file of all inferred genotypes, we have included bin2fasta. This takes as its input the location of a folder of .mat files produced by DADA and creates a file all.fasta within the same folder, placing the abundance of each sequence in its header. </p>
+
+<p>We also include 'omegaA_rejoin.m', which takes a folder of .mat files produced by dada and returns a vector of the approximate omegaA values that would be required for each cluster to be reabsorbed into some other cluster. Making a histogram of these is a good way to see whether the results are likely to be sensitive to the choice of the omegaA parameter, and if more conservative values ought to be used.</p>
+
+<p>Finally, we include 'discrimPlot.m', which takes various cluster parameters (see file for details) and significance levels omegaA and omegaR and returns the resulting discrimination plot for the two pvalue statistics. See the dada manuscipt for examples of these plots.</p>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Dada maintained by <a href="https://github.com/mjrosen">mjrosen</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
