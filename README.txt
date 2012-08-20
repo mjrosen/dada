@@ -1,3 +1,5 @@
+(note: if you're viewing this on github, click the wiki button for a better-formatted version of the same thing)
+
 This is a pipeline for processing amplicon sequence data using the DADA algorithm. 
 
 I. UPSTREAM of DADA. 
