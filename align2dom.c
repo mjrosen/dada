@@ -25,17 +25,17 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     if(nrhs != 4)
         mexErrMsgTxt("This function requires 4 inputs: 2 uint8 sequence vectors, 1 double score matrix, 1 double gap penalty");
     else if(nlhs > 2)
-        mxErrMsgTxt("Too many output arguments.");
+        mexErrMsgTxt("Too many output arguments.");
     else if(!mxIsUint8(prhs[0]) || !mxIsUint8(prhs[1]))
-        mxErrMsgTxt("Input sequences must be of type uint8");
+        mexErrMsgTxt("Input sequences must be of type uint8");
     else if(!mxIsDouble(prhs[2]))
-        mxErrMsgTxt("Input score matrix must be of type double");
+        mexErrMsgTxt("Input score matrix must be of type double");
     else if(!mxIsDouble(prhs[3]))
-        mxErrMsgTxt("Input gap penality score must be of type double");
+        mexErrMsgTxt("Input gap penality score must be of type double");
     else if(mxGetM(prhs[0]) != 1 || mxGetM(prhs[1]) != 1)
-        mxErrMsgTxt("Input sequences must be row vectors");
+        mexErrMsgTxt("Input sequences must be row vectors");
     else if(mxGetM(prhs[2]) != 4 || mxGetM(prhs[2]) != 4)
-        mxErrMsgTxt("Score matrix must be 4x4");
+        mexErrMsgTxt("Score matrix must be 4x4");
     
     mwSize i,j,l1,l2,nsubs=0;
     l1 = mxGetN(prhs[0]);
